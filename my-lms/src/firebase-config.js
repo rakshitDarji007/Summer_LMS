@@ -11,6 +11,8 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_APP_ID
 };
 
+console.log("Keys being read by the app:", firebaseConfig);
+
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
