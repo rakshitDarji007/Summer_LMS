@@ -1,5 +1,3 @@
-// src/components/Dashboard.jsx
-
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase-config';
 import { signOut } from 'firebase/auth';
@@ -8,11 +6,9 @@ import CreateCourse from './CreateCourse';
 
 const Dashboard = ({ user }) => {
   const [instructorCourses, setInstructorCourses] = useState([]);
-  // NEW: State to hold the list of ALL available courses for students
   const [allCourses, setAllCourses] = useState([]);
 
   useEffect(() => {
-    // --- Logic for Instructors ---
     if (user.role === 'Instructor') {
       const q = query(collection(db, "courses"), where("instructorId", "==", user.uid));
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -25,9 +21,7 @@ const Dashboard = ({ user }) => {
       return () => unsubscribe();
     }
 
-    // --- NEW: Logic for Students ---
     if (user.role === 'Student') {
-      // Query to get all courses, ordered by creation date
       const q = query(collection(db, "courses"), orderBy("createdAt", "desc"));
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const courses = [];
@@ -38,7 +32,7 @@ const Dashboard = ({ user }) => {
       });
       return () => unsubscribe();
     }
-  }, [user]); // Rerun this effect if the user object changes
+  }, [user]);
 
   const handleLogout = () => {
     signOut(auth);
@@ -77,14 +71,13 @@ const Dashboard = ({ user }) => {
         {user.role === 'Student' && (
           <div>
             <h3>Available Courses</h3>
-            {/* NEW: Display all available courses for the student */}
             {allCourses.length > 0 ? (
               allCourses.map(course => (
                 <div key={course.id} style={{ border: '1px solid #ccc', padding: '1rem', marginTop: '1rem' }}>
                   <h4>{course.title}</h4>
                   <p>{course.description}</p>
                   <p><small>Instructor: {course.instructorEmail}</small></p>
-                  <button>Enroll</button> {/* This button doesn't do anything yet */}
+                  <button>Enroll</button>
                 </div>
               ))
             ) : (
