@@ -1,26 +1,44 @@
+// src/components/Dashboard.jsx
+
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase-config';
 import { signOut } from 'firebase/auth';
-import { collection, query, where, onSnapshot } from 'firebase/firestore'; 
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore'; 
 import CreateCourse from './CreateCourse';
 
 const Dashboard = ({ user }) => {
-  const [courses, setCourses] = useState([]);
+  const [instructorCourses, setInstructorCourses] = useState([]);
+  // NEW: State to hold the list of ALL available courses for students
+  const [allCourses, setAllCourses] = useState([]);
+
   useEffect(() => {
+    // --- Logic for Instructors ---
     if (user.role === 'Instructor') {
       const q = query(collection(db, "courses"), where("instructorId", "==", user.uid));
-      
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const instructorCourses = [];
+        const courses = [];
         querySnapshot.forEach((doc) => {
-          instructorCourses.push({ id: doc.id, ...doc.data() });
+          courses.push({ id: doc.id, ...doc.data() });
         });
-        setCourses(instructorCourses);
+        setInstructorCourses(courses);
       });
-
       return () => unsubscribe();
     }
-  }, [user.uid, user.role]);
+
+    // --- NEW: Logic for Students ---
+    if (user.role === 'Student') {
+      // Query to get all courses, ordered by creation date
+      const q = query(collection(db, "courses"), orderBy("createdAt", "desc"));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const courses = [];
+        querySnapshot.forEach((doc) => {
+          courses.push({ id: doc.id, ...doc.data() });
+        });
+        setAllCourses(courses);
+      });
+      return () => unsubscribe();
+    }
+  }, [user]); // Rerun this effect if the user object changes
 
   const handleLogout = () => {
     signOut(auth);
@@ -43,9 +61,9 @@ const Dashboard = ({ user }) => {
             <CreateCourse />
             <div style={{ marginTop: '2rem' }}>
               <h3>My Created Courses</h3>
-              {courses.length > 0 ? (
+              {instructorCourses.length > 0 ? (
                 <ul>
-                  {courses.map(course => (
+                  {instructorCourses.map(course => (
                     <li key={course.id}>{course.title}</li>
                   ))}
                 </ul>
@@ -58,8 +76,20 @@ const Dashboard = ({ user }) => {
 
         {user.role === 'Student' && (
           <div>
-            <h3>My Courses</h3>
-            <p>Here you will eventually see the courses you are enrolled in.</p>
+            <h3>Available Courses</h3>
+            {/* NEW: Display all available courses for the student */}
+            {allCourses.length > 0 ? (
+              allCourses.map(course => (
+                <div key={course.id} style={{ border: '1px solid #ccc', padding: '1rem', marginTop: '1rem' }}>
+                  <h4>{course.title}</h4>
+                  <p>{course.description}</p>
+                  <p><small>Instructor: {course.instructorEmail}</small></p>
+                  <button>Enroll</button> {/* This button doesn't do anything yet */}
+                </div>
+              ))
+            ) : (
+              <p>No courses are available at this time.</p>
+            )}
           </div>
         )}
 
