@@ -46,7 +46,7 @@ function App() {
       } />
 
       <Route path="/course/:courseId" element={
-        !user ? <Navigate to="/login" /> : <CourseDetail />
+        !user ? <Navigate to="/login" /> : <CourseDetail user={user} />
       } />
     </Routes>
   );

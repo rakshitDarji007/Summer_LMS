@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase-config';
 import { signOut } from 'firebase/auth';
-import { collection, query, where, onSnapshot, orderBy, doc, setDoc, getDocs } from 'firebase/firestore'; 
+import { collection, query, where, onSnapshot, orderBy, doc, setDoc, getDocs, getDoc } from 'firebase/firestore'; 
 import { Link } from 'react-router-dom';
 import CreateCourse from './CreateCourse';
 
@@ -52,6 +52,9 @@ const Dashboard = ({ user }) => {
       alert('Failed to enroll. You might already be enrolled.');
     }
   };
+
+  const enrolledCourseIds = enrolledCourses.map(c => c.id);
+  const filteredAvailableCourses = allCourses.filter(course => !enrolledCourseIds.includes(course.id));
 
   return (
     <div>
