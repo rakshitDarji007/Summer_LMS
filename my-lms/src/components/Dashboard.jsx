@@ -98,8 +98,8 @@ const Dashboard = ({ user }) => {
             <hr style={{margin: '2rem 0'}} />
 
             <h3>Available Courses</h3>
-            {allCourses.length > 0 ? (
-              allCourses.map(course => (
+            {filteredAvailableCourses.length > 0 ? (
+              filteredAvailableCourses.map(course => (
                 <div key={course.id} style={{ border: '1px solid #ccc', padding: '1rem', marginTop: '1rem' }}>
                   <h4>{course.title}</h4>
                   <p>{course.description}</p>
@@ -107,7 +107,7 @@ const Dashboard = ({ user }) => {
                   <button onClick={() => handleEnroll(course.id)}>Enroll</button>
                 </div>
               ))
-            ) : <p>No courses are available at this time.</p>}
+            ) : <p>No new courses are available for enrollment.</p>}
           </div>
         )}
       </main>
