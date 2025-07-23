@@ -1,10 +1,12 @@
+// src/pages/CourseDetail.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '../firebase-config';
 import AddModule from '../components/AddModule';
 import CreateAssignment from '../components/CreateAssignment';
-import SubmitAssingment from '../components/SubmitAssignment';
+import SubmitAssignment from '../components/SubmitAssignment';
 
 const CourseDetail = ({ user }) => {
   const [course, setCourse] = useState(null);
@@ -16,14 +18,12 @@ const CourseDetail = ({ user }) => {
 
   useEffect(() => {
     const courseDocRef = doc(db, 'courses', courseId);
-    const getCourse = async () => {
-      const docSnap = await getDoc(courseDocRef);
+    getDoc(courseDocRef).then(docSnap => {
       if (docSnap.exists()) {
         setCourse({ id: docSnap.id, ...docSnap.data() });
       }
       setLoading(false);
-    };
-    getCourse();
+    });
 
     const modulesQuery = query(collection(db, 'courses', courseId, 'modules'), orderBy('createdAt', 'asc'));
     const unsubscribeModules = onSnapshot(modulesQuery, (snapshot) => {
@@ -36,7 +36,7 @@ const CourseDetail = ({ user }) => {
     });
 
     if (user.role === 'Student') {
-      const enrollmentDocRef = doc(db, 'enrollments', '${user.uid}_${courseId}');
+      const enrollmentDocRef = doc(db, 'enrollments', `${user.uid}_${courseId}`);
       getDoc(enrollmentDocRef).then(docSnap => {
         if (docSnap.exists()) {
           setIsEnrolled(true);
@@ -48,7 +48,7 @@ const CourseDetail = ({ user }) => {
       unsubscribeModules();
       unsubscribeAssignments();
     };
-  }, [courseId]);
+  }, [courseId, user.uid, user.role]);
 
   if (loading) return <div>Loading course...</div>;
   
@@ -82,6 +82,9 @@ const CourseDetail = ({ user }) => {
             <h4>{assignment.title}</h4>
             <p>{assignment.description}</p>
             <p><small>Due: {new Date(assignment.dueDate.seconds * 1000).toLocaleDateString()}</small></p>
+            {user.role === 'Student' && isEnrolled && (
+              <SubmitAssignment courseId={courseId} assignmentId={assignment.id} />
+            )}
           </div>
         ))
       ) : <p>This course has no assignments yet.</p>}
