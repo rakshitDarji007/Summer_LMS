@@ -4,12 +4,14 @@ import { doc, getDoc, collection, query, onSnapshot, orderBy } from 'firebase/fi
 import { db } from '../firebase-config';
 import AddModule from '../components/AddModule';
 import CreateAssignment from '../components/CreateAssignment';
+import SubmitAssingment from '../components/SubmitAssignment';
 
 const CourseDetail = ({ user }) => {
   const [course, setCourse] = useState(null);
   const [modules, setModules] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isEnrolled, setIsEnrolled] = useState(false);
   const { courseId } = useParams();
 
   useEffect(() => {
@@ -32,6 +34,15 @@ const CourseDetail = ({ user }) => {
     const unsubscribeAssignments = onSnapshot(assignmentsQuery, (snapshot) => {
       setAssignments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
+
+    if (user.role === 'Student') {
+      const enrollmentDocRef = doc(db, 'enrollments', '${user.uid}_${courseId}');
+      getDoc(enrollmentDocRef).then(docSnap => {
+        if (docSnap.exists()) {
+          setIsEnrolled(true);
+        }
+      });
+    }
 
     return () => {
       unsubscribeModules();
