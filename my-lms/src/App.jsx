@@ -3,6 +3,7 @@ import { auth, db } from './firebase-config';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { Routes, Route, Navigate } from 'react-router-dom'; 
+import { Container, Grid, Paper, Box, Typography } from '@mui/material';
 
 import Login from './components/Login';
 import SignUp from './components/SignUp';
@@ -42,7 +43,23 @@ function App() {
       } />
       
       <Route path="/login" element={
-        user ? <Navigate to="/" /> : <div><Login /><hr/><SignUp /></div>
+        user ? <Navigate to="/" /> : (
+          <Container component="main" maxWidth="md" sx={{ mt: 8 }}>
+            <Paper elevation={3} sx={{ p: 4 }}>
+              <Typography variant="h4" align="center" gutterBottom>
+                Welcome to MyLMS
+              </Typography>
+              <Grid container spacing={4} alignItems="flex-start">
+                <Grid item xs={12} sm={6}>
+                  <SignUp />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Login />
+                </Grid>
+              </Grid>
+            </Paper>
+          </Container>
+        )
       } />
 
       <Route path="/course/:courseId" element={
